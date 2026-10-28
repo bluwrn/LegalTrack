@@ -15,22 +15,14 @@
 
         <div class="bg-white rounded-2xl shadow-xl p-8">
 
-            {{-- Logo --}}
             <div class="text-center mb-8">
-
-                <div class="w-14 h-14 bg-blue-900 rounded-xl
-                            flex items-center justify-center
-                            mx-auto mb-4">
-
-                    <span class="text-white text-2xl font-bold">
-                        L
-                    </span>
-
+                <div class="mx-auto mb-4 h-28 w-full max-w-sm overflow-hidden">
+                    <img
+                        src="{{ asset('images/logo-pt.png') }}"
+                        alt="Logo PT Mega Perkasa Jaya"
+                        class="h-full w-full object-cover"
+                    >
                 </div>
-
-                <h1 class="text-2xl font-bold text-slate-800">
-                    LegalTrack
-                </h1>
 
                 <p class="text-slate-500 mt-1">
                     Sistem Manajemen Kontrak
@@ -144,12 +136,8 @@
 
                     </label>
 
-
-                    <a
-                        href="#"
-                        class="text-sm text-blue-700 hover:underline"
-                    >
-                        Lupa Kata Sandi?
+                    <a href="{{ route('password.request') }}" class="text-sm font-semibold text-blue-900 hover:text-blue-700">
+                        Lupa kata sandi?
                     </a>
 
                 </div>
@@ -170,6 +158,13 @@
                 </button>
 
             </form>
+
+            <p class="mt-5 text-center text-sm text-slate-600">
+                Belum punya akun?
+                <a href="{{ route('register') }}" class="font-semibold text-blue-900 hover:text-blue-700">
+                    Daftar sekarang
+                </a>
+            </p>
 
         </div>
 

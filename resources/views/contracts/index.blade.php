@@ -224,15 +224,37 @@
             <!-- TABLE -->
             <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
 
-                <div class="px-6 py-5 border-b border-slate-100">
+                <div class="px-6 py-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
 
-                    <h2 class="font-semibold text-slate-700">
-                        Data Kontrak
-                    </h2>
+                    <div>
+                        <h2 class="font-semibold text-slate-700">
+                            Data Kontrak
+                        </h2>
 
-                    <p class="text-xs text-slate-400 mt-1">
-                        {{ $contracts->total() }} kontrak ditemukan
-                    </p>
+                        <p class="text-xs text-slate-400 mt-1">
+                            {{ $contracts->total() }} kontrak ditemukan
+                        </p>
+                    </div>
+
+                    <form method="GET" action="{{ route('contracts.index') }}" class="flex items-center gap-2">
+                        @if(request('search'))
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+                        @endif
+                        @if(request('kategori'))
+                            <input type="hidden" name="kategori" value="{{ request('kategori') }}">
+                        @endif
+                        @if(request('status'))
+                            <input type="hidden" name="status" value="{{ request('status') }}">
+                        @endif
+                        <label for="perPage" class="text-xs text-slate-500 font-medium">Tampilkan:</label>
+                        <select name="per_page" id="perPage" onchange="this.form.submit()" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-sky-400 bg-white">
+                            <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5 per halaman</option>
+                            <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10 per halaman</option>
+                            <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 per halaman</option>
+                            <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 per halaman</option>
+                            <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 per halaman</option>
+                        </select>
+                    </form>
 
                 </div>
 

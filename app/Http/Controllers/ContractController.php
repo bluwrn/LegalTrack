@@ -42,6 +42,37 @@ class ContractController extends Controller
 
         $totalValue = Contract::sum('nilai_kontrak');
 
+        $categoryStats = Contract::selectRaw('kategori, count(*) as count')
+            ->groupBy('kategori')
+            ->pluck('count', 'kategori')
+            ->toArray();
+
+        $currentYear = now()->year;
+        $months = [
+            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr',
+            5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu',
+            9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'
+        ];
+        $monthlyOmset = array_fill_keys(array_values($months), 0);
+
+        $monthlyData = Contract::whereYear('tanggal_mulai', $currentYear)
+            ->selectRaw('MONTH(tanggal_mulai) as month, SUM(nilai_kontrak) as total')
+            ->groupBy('month')
+            ->pluck('total', 'month')
+            ->toArray();
+
+        foreach ($monthlyData as $m => $total) {
+            if (isset($months[$m])) {
+                $monthlyOmset[$months[$m]] = (float) $total;
+            }
+        }
+
+        $categoryOmset = Contract::selectRaw('kategori, SUM(nilai_kontrak) as total')
+            ->groupBy('kategori')
+            ->pluck('total', 'kategori')
+            ->map(fn($val) => (float) $val)
+            ->toArray();
+
         $user = Auth::user();
 
         return view('dashboard', compact(
@@ -53,7 +84,10 @@ class ContractController extends Controller
             'totalValue',
             'criticalDays',
             'nearDays',
-            'user'
+            'user',
+            'categoryStats',
+            'monthlyOmset',
+            'categoryOmset'
         ));
     }
 
@@ -88,9 +122,14 @@ class ContractController extends Controller
             );
         }
 
+        $perPage = (int) $request->get('per_page', 10);
+        if (!in_array($perPage, [5, 10, 25, 50, 100])) {
+            $perPage = 10;
+        }
+
         $contracts = $query
             ->latest()
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         return view(

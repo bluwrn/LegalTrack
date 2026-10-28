@@ -1,9 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ContractController;
-use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ContractController;
+use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\SettingsController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -11,60 +12,86 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| AUTH
+| PUBLIC AUTHENTICATION
 |--------------------------------------------------------------------------
 */
 
-Route::get('/login', [AuthController::class, 'showLogin'])
-    ->name('login');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])
+        ->name('login');
 
-Route::post('/login', [AuthController::class, 'login'])
-    ->name('login.process');
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:5,1')
+        ->name('login.process');
 
-Route::post('/logout', [AuthController::class, 'logout'])
-    ->name('logout');
+    Route::get('/forgot-password', [PasswordResetController::class, 'showRequest'])
+        ->name('password.request');
 
-/*
-|--------------------------------------------------------------------------
-| DASHBOARD - SEMUA MENU DALAM SATU HALAMAN
-|--------------------------------------------------------------------------
-*/
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendLink'])
+        ->middleware('throttle:5,1,password-email:')
+        ->name('password.email');
 
-Route::get('/dashboard', [ContractController::class, 'dashboard'])
-    ->name('dashboard');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'showReset'])
+        ->name('password.reset');
 
-/*
-|--------------------------------------------------------------------------
-| CONTRACT
-|--------------------------------------------------------------------------
-*/
+    Route::post('/reset-password', [PasswordResetController::class, 'reset'])
+        ->middleware('throttle:5,1,password-reset:')
+        ->name('password.update');
 
-Route::resource('contracts', ContractController::class);
+    Route::get('/register', [AuthController::class, 'showRegister'])
+        ->name('register');
 
-/*
-|--------------------------------------------------------------------------
-| SETTINGS / PENGATURAN
-|--------------------------------------------------------------------------
-*/
+    Route::post('/register', [AuthController::class, 'register'])
+        ->middleware('throttle:5,1')
+        ->name('register.process');
+});
 
-Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])
-    ->name('settings.profile.update');
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])
+        ->name('logout');
 
-Route::put('/settings/password', [SettingsController::class, 'updatePassword'])
-    ->name('settings.password.update');
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD - SEMUA MENU DALAM SATU HALAMAN
+    |--------------------------------------------------------------------------
+    */
 
-Route::post('/pengaturan/reminder', [ContractController::class, 'updateReminderSettings'])
-    ->name('settings.reminder.update');
+    Route::get('/dashboard', [ContractController::class, 'dashboard'])
+        ->name('dashboard');
 
-/*
-|--------------------------------------------------------------------------
-| URL LAMA /settings
-|--------------------------------------------------------------------------
-| Kalau user membuka /settings secara manual,
-| tetap diarahkan ke Dashboard bagian Pengaturan.
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | CONTRACT
+    |--------------------------------------------------------------------------
+    */
 
-Route::get('/settings', function () {
-    return redirect('/dashboard#pengaturan');
-})->name('settings');
+    Route::resource('contracts', ContractController::class);
+
+    /*
+    |--------------------------------------------------------------------------
+    | SETTINGS / PENGATURAN
+    |--------------------------------------------------------------------------
+    */
+
+    Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])
+        ->name('settings.profile.update');
+
+    Route::put('/settings/password', [SettingsController::class, 'updatePassword'])
+        ->name('settings.password.update');
+
+    Route::post('/pengaturan/reminder', [ContractController::class, 'updateReminderSettings'])
+        ->name('settings.reminder.update');
+
+    /*
+    |--------------------------------------------------------------------------
+    | URL LAMA /settings
+    |--------------------------------------------------------------------------
+    | Kalau user membuka /settings secara manual,
+    | tetap diarahkan ke Dashboard bagian Pengaturan.
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/settings', function () {
+        return redirect('/dashboard#pengaturan');
+    })->name('settings');
+});
